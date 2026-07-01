@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-50: #fcf4f4;
+  --color-brand-100: #fae6e7;
+  --color-brand-200: #f3c7c9;
+  --color-brand-300: #ea9da1;
+  --color-brand-400: #dd666e;
+  --color-brand-500: #cc3d48;
+  --color-brand-600: #b42b38;
+  --color-brand-700: #95202c; /* Main Liturgical Red */
+  --color-brand-800: #7f1d27;
+  --color-brand-900: #6b1c25;
+  --color-brand-950: #3a0c12;
+  --color-accent-500: #D4AF37;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
