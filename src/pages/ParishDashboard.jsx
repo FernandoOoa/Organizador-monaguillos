@@ -23,7 +23,7 @@ export default function ParishDashboard() {
   const [actionLoading, setActionLoading] = useState(false);
 
   // Estados de generación de roles (Admin)
-  const [selectedMonaguillos, setSelectedMonaguillos] = useState({}); // { id: boolean }
+  const [presentKids, setPresentKids] = useState([]); // [{ id, name, size, skills }]
   const [objectsConfig, setObjectsConfig] = useState({});
   const [errorMsg, setErrorMsg] = useState('');
   const [warningMsg, setWarningMsg] = useState('');
@@ -99,12 +99,28 @@ export default function ParishDashboard() {
     setObjectsConfig(initialConfig);
   }, []);
 
-  // Pre-seleccionar todos los monaguillos disponibles por defecto cuando se cargan
+  // Pre-seleccionar todos los monaguillos disponibles por defecto cuando se cargan por primera vez
   useEffect(() => {
-    const sel = {};
-    members.forEach(m => { sel[m.uid] = true; });
-    virtuals.forEach(v => { sel[v.id] = true; });
-    setSelectedMonaguillos(sel);
+    if (presentKids.length === 0 && (members.length > 0 || virtuals.length > 0)) {
+      const initialKids = [];
+      members.forEach(m => {
+        initialKids.push({
+          id: m.uid,
+          name: m.liturgicalName || m.displayName,
+          size: m.size || 'chico',
+          skills: m.skills || []
+        });
+      });
+      virtuals.forEach(v => {
+        initialKids.push({
+          id: v.id,
+          name: v.name,
+          size: v.size || 'chico',
+          skills: v.skills || []
+        });
+      });
+      setPresentKids(initialKids);
+    }
   }, [members, virtuals]);
 
   // Crear Parroquia
@@ -207,12 +223,25 @@ export default function ParishDashboard() {
     }
   };
 
-  // Toggle Monaguillo Presente
-  const toggleMonaguilloPresence = (id) => {
-    setSelectedMonaguillos(prev => ({
-      ...prev,
-      [id]: !prev[id]
-    }));
+  // Toggle Monaguillo Presente (agrega al final si no está, o lo quita)
+  const toggleMonaguilloPresence = (kidData) => {
+    const isPresent = presentKids.some(k => k.id === kidData.id);
+    if (isPresent) {
+      setPresentKids(prev => prev.filter(k => k.id !== kidData.id));
+    } else {
+      setPresentKids(prev => [...prev, kidData]);
+    }
+  };
+
+  // Reordenar monaguillos presentes (para establecer orden de llegada manual)
+  const moveKid = (index, direction) => {
+    const newKids = [...presentKids];
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= newKids.length) return;
+    const temp = newKids[index];
+    newKids[index] = newKids[targetIndex];
+    newKids[targetIndex] = temp;
+    setPresentKids(newKids);
   };
 
   // Configuración de Objetos
@@ -237,36 +266,15 @@ export default function ParishDashboard() {
     setErrorMsg('');
     setWarningMsg('');
 
-    // Crear lista de monaguillos presentes con formato compatible para el algoritmo
-    const presentMonaguillos = [];
-
-    // Miembros reales presentes
-    members.forEach(m => {
-      if (selectedMonaguillos[m.uid]) {
-        presentMonaguillos.push({
-          id: m.uid,
-          originalName: m.liturgicalName || m.displayName,
-          name: m.liturgicalName || m.displayName, // El algoritmo recalculará el número
-          size: m.size || 'chico',
-          preassignedTasks: [], // No preasignamos para la generación grupal automática
-          skills: m.skills || []
-        });
-      }
-    });
-
-    // Virtuales presentes
-    virtuals.forEach(v => {
-      if (selectedMonaguillos[v.id]) {
-        presentMonaguillos.push({
-          id: v.id,
-          originalName: v.name,
-          name: v.name,
-          size: v.size || 'chico',
-          preassignedTasks: [],
-          skills: v.skills || []
-        });
-      }
-    });
+    // Crear lista de monaguillos presentes en el orden de llegada de la lista
+    const presentMonaguillos = presentKids.map(k => ({
+      id: k.id,
+      originalName: k.name,
+      name: k.name,
+      size: k.size,
+      preassignedTasks: [],
+      skills: k.skills || []
+    }));
 
     if (presentMonaguillos.length === 0) {
       setErrorMsg("Debes seleccionar al menos un monaguillo presente para realizar la asignación.");
@@ -484,61 +492,81 @@ export default function ParishDashboard() {
 
           <div className="space-y-3 max-h-[450px] overflow-y-auto pr-1">
             {/* Miembros reales */}
-            {members.map(member => (
-              <div key={member.uid} className="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-slate-50/50">
-                <div className="flex items-center gap-2 min-w-0">
-                  <input 
-                    type="checkbox"
-                    checked={!!selectedMonaguillos[member.uid]}
-                    onChange={() => toggleMonaguilloPresence(member.uid)}
-                    className="w-4 h-4 rounded text-brand-700 border-slate-300 focus:ring-brand-700 flex-shrink-0"
-                    title="Presente hoy"
-                  />
-                  <img src={member.photoURL} alt={member.displayName} className="w-6 h-6 rounded-full border" />
-                  <span className="text-xs font-bold text-slate-700 truncate">{member.liturgicalName || member.displayName}</span>
+            {members.map(member => {
+              const isPresent = presentKids.some(k => k.id === member.uid);
+              return (
+                <div key={member.uid} className={`flex items-center justify-between p-3 rounded-xl border transition-all ${
+                  isPresent ? 'border-brand-200 bg-brand-50/10' : 'border-slate-100 bg-slate-50/50'
+                }`}>
+                  <div className="flex items-center gap-2 min-w-0">
+                    <input 
+                      type="checkbox"
+                      checked={isPresent}
+                      onChange={() => toggleMonaguilloPresence({
+                        id: member.uid,
+                        name: member.liturgicalName || member.displayName,
+                        size: member.size || 'chico',
+                        skills: member.skills || []
+                      })}
+                      className="w-4 h-4 rounded text-brand-700 border-slate-300 focus:ring-brand-700 flex-shrink-0"
+                      title="Presente hoy"
+                    />
+                    <img src={member.photoURL} alt={member.displayName} className="w-6 h-6 rounded-full border" />
+                    <span className="text-xs font-bold text-slate-700 truncate">{member.liturgicalName || member.displayName}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[9px] font-bold text-slate-400 uppercase">{member.size === 'grande_incienso' ? 'Grande/Inc' : member.size}</span>
+                    {isAdmin && member.uid !== currentUser.uid && (
+                      <button 
+                        onClick={() => handleKickMember(member.uid)}
+                        className="text-slate-300 hover:text-red-600 transition-colors"
+                        title="Expulsar"
+                      >
+                        <UserMinus className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[9px] font-bold text-slate-400 uppercase">{member.size === 'grande_incienso' ? 'Grande/Inc' : member.size}</span>
-                  {isAdmin && member.uid !== currentUser.uid && (
-                    <button 
-                      onClick={() => handleKickMember(member.uid)}
-                      className="text-slate-300 hover:text-red-600 transition-colors"
-                      title="Expulsar"
-                    >
-                      <UserMinus className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))}
+              );
+            })}
 
             {/* Miembros virtuales */}
-            {virtuals.map(v => (
-              <div key={v.id} className="flex items-center justify-between p-3 rounded-xl border border-dashed border-amber-200 bg-amber-50/10">
-                <div className="flex items-center gap-2 min-w-0">
-                  <input 
-                    type="checkbox"
-                    checked={!!selectedMonaguillos[v.id]}
-                    onChange={() => toggleMonaguilloPresence(v.id)}
-                    className="w-4 h-4 rounded text-brand-700 border-slate-300 focus:ring-brand-700 flex-shrink-0"
-                    title="Presente hoy"
-                  />
-                  <span className="text-xs font-bold text-amber-950 truncate">👤 {v.name}</span>
+            {virtuals.map(v => {
+              const isPresent = presentKids.some(k => k.id === v.id);
+              return (
+                <div key={v.id} className={`flex items-center justify-between p-3 rounded-xl border border-dashed transition-all ${
+                  isPresent ? 'border-amber-300 bg-amber-50/20' : 'border-amber-200 bg-amber-50/10'
+                }`}>
+                  <div className="flex items-center gap-2 min-w-0">
+                    <input 
+                      type="checkbox"
+                      checked={isPresent}
+                      onChange={() => toggleMonaguilloPresence({
+                        id: v.id,
+                        name: v.name,
+                        size: v.size || 'chico',
+                        skills: v.skills || []
+                      })}
+                      className="w-4 h-4 rounded text-brand-700 border-slate-300 focus:ring-brand-700 flex-shrink-0"
+                      title="Presente hoy"
+                    />
+                    <span className="text-xs font-bold text-amber-950 truncate">👤 {v.name}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[9px] font-bold text-amber-500 uppercase">{v.size === 'grande_incienso' ? 'Grande/Inc' : v.size} (V)</span>
+                    {isAdmin && (
+                      <button 
+                        onClick={() => handleDeleteVirtual(v.id)}
+                        className="text-amber-300 hover:text-red-600 transition-colors"
+                        title="Eliminar virtual"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[9px] font-bold text-amber-500 uppercase">{v.size === 'grande_incienso' ? 'Grande/Inc' : v.size} (V)</span>
-                  {isAdmin && (
-                    <button 
-                      onClick={() => handleDeleteVirtual(v.id)}
-                      className="text-amber-300 hover:text-red-600 transition-colors"
-                      title="Eliminar virtual"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
@@ -622,6 +650,57 @@ export default function ParishDashboard() {
                 <span>{errorMsg}</span>
               </div>
             )}
+
+            {/* Lista ordenada de Presentes (Orden de Llegada) */}
+            <div className="bg-slate-50 border border-slate-200/60 rounded-2xl p-4 space-y-3">
+              <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center justify-between">
+                <span>Asistencia (Orden de Llegada: {presentKids.length})</span>
+                <span className="text-[10px] text-slate-400 font-normal">Añade en la barra lateral</span>
+              </h4>
+              
+              {presentKids.length === 0 ? (
+                <p className="text-xs text-slate-400 italic py-2 text-center">Selecciona monaguillos en la lista lateral para agregarlos en orden de llegada...</p>
+              ) : (
+                <div className="space-y-1.5 max-h-[220px] overflow-y-auto pr-1">
+                  {presentKids.map((k, index) => (
+                    <div key={k.id} className="bg-white border border-slate-100 rounded-xl p-2.5 flex items-center justify-between text-xs font-semibold shadow-xs">
+                      <div className="flex items-center gap-2 truncate">
+                        <span className="text-slate-400 text-[10px] font-bold w-4 text-center">{index + 1}.</span>
+                        <span className="text-slate-700 truncate">{k.name}</span>
+                        <span className="text-[8px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded font-extrabold uppercase">
+                          {k.size === 'grande_incienso' ? 'Grande/Inc.' : k.size}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <button 
+                          onClick={() => moveKid(index, -1)}
+                          disabled={index === 0}
+                          className="p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded disabled:opacity-30 disabled:hover:bg-transparent"
+                          title="Subir orden"
+                        >
+                          ▲
+                        </button>
+                        <button 
+                          onClick={() => moveKid(index, 1)}
+                          disabled={index === presentKids.length - 1}
+                          className="p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded disabled:opacity-30 disabled:hover:bg-transparent"
+                          title="Bajar orden"
+                        >
+                          ▼
+                        </button>
+                        <button 
+                          onClick={() => toggleMonaguilloPresence(k)}
+                          className="p-1 text-red-400 hover:text-red-600 hover:bg-red-50 rounded"
+                          title="Quitar de la lista"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
 
             {/* Botón de Sorteo */}
             <button 
