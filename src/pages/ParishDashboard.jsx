@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { ParishService } from '../services/ParishService';
 import { allObjects, getTaskEmoji } from '../config/liturgicalObjects';
-import { assignLiturgicalTasks } from '../utils/assignmentAlgorithm';
+import { assignParishTasks } from '../utils/parishAssignmentAlgorithm';
 import { db } from '../config/firebase';
 import { doc, onSnapshot, collection, query, where, updateDoc } from 'firebase/firestore';
 import { 
@@ -280,7 +280,7 @@ export default function ParishDashboard() {
     });
 
     // Ejecutar algoritmo
-    const result = assignLiturgicalTasks(presentMonaguillos, selectedIds, qtys);
+    const result = assignParishTasks(presentMonaguillos, selectedIds, qtys);
 
     if (result.error) {
       setErrorMsg(result.error);
@@ -300,11 +300,10 @@ export default function ParishDashboard() {
       await ParishService.saveParishAssignments(
         parishId, 
         assignmentsList, 
-        userProfile?.liturgicalName || currentUser?.displayName || 'Desconocido'
+        userProfile?.liturgicalName || currentUser?.displayName || 'Desconocido',
+        result.warnings
       );
-      if (result.warningChicos) {
-        setWarningMsg('Atención: Faltan niños Grandes. Se asignaron tareas pesadas (Ciriales, Incienso, Libro) a niños chicos. Supervíselos.');
-      }
+      setWarningMsg('');
     } catch (err) {
       alert("Error al guardar asignaciones: " + err.message);
     }
@@ -321,8 +320,11 @@ export default function ParishDashboard() {
       text += `👤 *${i + 1}. ${k.name}* (${sizeLabel}):\n`;
       if (k.tasks && k.tasks.length > 0) {
         k.tasks.forEach(t => {
-          const emoji = getTaskEmoji(t);
-          text += `  ${emoji} ${t}\n`;
+          const isObj = typeof t === 'object';
+          const tName = isObj ? t.name : t;
+          const warningSymbol = (isObj && t.warningNoSkill) ? ' (⚠️ No capacitado)' : '';
+          const emoji = getTaskEmoji(tName);
+          text += `  ${emoji} ${tName}${warningSymbol}\n`;
         });
       } else {
         text += `  💤 Sin tareas asignadas\n`;
@@ -549,40 +551,67 @@ export default function ParishDashboard() {
               <Sparkles className="w-5 h-5 text-brand-700" /> Configuración de la Liturgia y Asignación
             </h3>
 
-            {/* Objetos normales */}
-            <div className="space-y-3">
-              <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Objetos Litúrgicos a Utilizar</h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                {allObjects.map(obj => {
-                  const config = objectsConfig[obj.id] || { checked: obj.checked, qty: obj.defaultQty || 1 };
-                  const isSelected = config.checked;
+            {/* Objetos a utilizar */}
+            <div className="space-y-6">
+              <div>
+                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 border-b border-slate-100 pb-1">Uso Normal</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                  {allObjects.filter(o => o.category === 'normal').map(obj => {
+                    const config = objectsConfig[obj.id] || { checked: obj.checked, qty: obj.defaultQty || 1 };
+                    const isSelected = config.checked;
 
-                  return (
-                    <label key={obj.id} className={`flex items-center gap-3 p-3 rounded-xl border shadow-xs cursor-pointer hover:bg-slate-50 transition-all ${
-                      isSelected ? 'border-l-4 border-l-brand-600 bg-brand-50/10' : 'border-slate-200 bg-white'
-                    }`}>
-                      <input 
-                        type="checkbox" 
-                        checked={isSelected}
-                        onChange={() => handleObjectCheck(obj.id)}
-                        className="w-4 h-4 rounded text-brand-700 border-slate-300 focus:ring-brand-700"
-                      />
-                      <div className="p-1 bg-slate-100 rounded-lg">{obj.icon}</div>
-                      <span className="font-semibold text-slate-700 text-xs flex-1">{obj.name}</span>
-                      {obj.rules === 'multiple' && (
+                    return (
+                      <label key={obj.id} className={`flex items-center gap-3 p-3 rounded-xl border shadow-xs cursor-pointer hover:bg-slate-50 transition-all ${
+                        isSelected ? 'border-l-4 border-l-brand-600 bg-brand-50/10' : 'border-slate-200 bg-white'
+                      }`}>
                         <input 
-                          type="number"
-                          min="1"
-                          max="8"
-                          value={config.qty}
-                          onChange={(e) => handleObjectQtyChange(obj.id, e.target.value)}
-                          onClick={(e) => e.stopPropagation()}
-                          className="w-10 px-1 py-0.5 text-xs border border-slate-200 rounded-md text-center bg-white"
+                          type="checkbox" 
+                          checked={isSelected}
+                          onChange={() => handleObjectCheck(obj.id)}
+                          className="w-4 h-4 rounded text-brand-700 border-slate-300 focus:ring-brand-700"
                         />
-                      )}
-                    </label>
-                  );
-                })}
+                        <div className="p-1 bg-slate-100 rounded-lg">{obj.icon}</div>
+                        <span className="font-semibold text-slate-700 text-xs flex-1">{obj.name}</span>
+                        {obj.rules === 'multiple' && (
+                          <input 
+                            type="number"
+                            min="1"
+                            max="8"
+                            value={config.qty}
+                            onChange={(e) => handleObjectQtyChange(obj.id, e.target.value)}
+                            onClick={(e) => e.stopPropagation()}
+                            className="w-10 px-1 py-0.5 text-xs border border-slate-200 rounded-md text-center bg-white"
+                          />
+                        )}
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-xs font-bold text-accent-500 uppercase tracking-wider mb-3 border-b border-slate-100 pb-1">Uso Solemne</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                  {allObjects.filter(o => o.category === 'solemne').map(obj => {
+                    const config = objectsConfig[obj.id] || { checked: obj.checked, qty: obj.defaultQty || 1 };
+                    const isSelected = config.checked;
+
+                    return (
+                      <label key={obj.id} className={`flex items-center gap-3 p-3 rounded-xl border shadow-xs cursor-pointer hover:bg-slate-50 transition-all ${
+                        isSelected ? 'border-l-4 border-l-brand-600 bg-brand-50/10' : 'border-slate-200 bg-white'
+                      }`}>
+                        <input 
+                          type="checkbox" 
+                          checked={isSelected}
+                          onChange={() => handleObjectCheck(obj.id)}
+                          className="w-4 h-4 rounded text-brand-700 border-slate-300 focus:ring-brand-700"
+                        />
+                        <div className="p-1 bg-slate-100 rounded-lg">{obj.icon}</div>
+                        <span className="font-semibold text-slate-700 text-xs flex-1">{obj.name}</span>
+                      </label>
+                    );
+                  })}
+                </div>
               </div>
             </div>
 
@@ -591,12 +620,6 @@ export default function ParishDashboard() {
               <div className="bg-red-50 border border-red-200 text-red-800 p-4 rounded-xl flex items-center gap-3 text-xs">
                 <X className="w-5 h-5 text-red-500 flex-shrink-0" />
                 <span>{errorMsg}</span>
-              </div>
-            )}
-            {warningMsg && (
-              <div className="bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-xl flex items-start gap-3 text-xs">
-                <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
-                <span>{warningMsg}</span>
               </div>
             )}
 
@@ -675,18 +698,52 @@ export default function ParishDashboard() {
                           <div className="text-[10px] text-slate-400 italic">Sin tareas asignadas</div>
                         ) : (
                           <ul className="space-y-1">
-                            {k.tasks.map((taskName, tIdx) => (
-                              <li key={tIdx} className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-                                <span>{getTaskEmoji(taskName)}</span>
-                                <span>{taskName}</span>
-                              </li>
-                            ))}
+                            {k.tasks.map((task, tIdx) => {
+                              const isObj = typeof task === 'object';
+                              const taskName = isObj ? task.name : task;
+                              const isWarning = isObj ? task.warningNoSkill : false;
+
+                              return (
+                                <li key={tIdx} className={`text-xs font-semibold flex items-center justify-between p-1 rounded-lg ${
+                                  isWarning ? 'bg-amber-50 text-amber-900 border border-amber-200 px-2' : 'text-slate-700'
+                                }`}>
+                                  <span className="flex items-center gap-1.5">
+                                    <span>{getTaskEmoji(taskName)}</span>
+                                    <span>{taskName}</span>
+                                  </span>
+                                  {isWarning && (
+                                    <span className="text-[8px] font-extrabold text-amber-700 bg-amber-100 px-1 rounded" title="Habilidad no registrada en su perfil">
+                                      ⚠️ Ver
+                                    </span>
+                                  )}
+                                </li>
+                              );
+                            })}
                           </ul>
                         )}
                       </div>
                     </div>
                   );
                 })}
+              </div>
+            )}
+
+            {/* Listado de Advertencias de Asignación Forzada */}
+            {parish?.latestAssignmentsWarnings && parish.latestAssignmentsWarnings.length > 0 && (
+              <div className="mt-6 p-5 bg-amber-50 border border-amber-200 rounded-2xl space-y-3 animate-[fadeIn_0.3s_ease-out]">
+                <h4 className="text-sm font-bold text-amber-800 uppercase tracking-wider flex items-center gap-2">
+                  <AlertTriangle className="w-5 h-5 text-amber-600" /> Monaguillos asignados sin habilidad registrada (Supervisar)
+                </h4>
+                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-amber-950 font-semibold">
+                  {parish.latestAssignmentsWarnings.map((w, idx) => (
+                    <li key={idx} className="flex items-center gap-2 bg-white/70 p-3 rounded-xl border border-amber-100 shadow-xs">
+                      <span className="text-[9px] font-extrabold bg-amber-200 text-amber-800 px-2 py-1 rounded-md flex-shrink-0">
+                        ⚠️ {w.taskName}
+                      </span>
+                      <span>Asignado a: <strong className="font-bold text-slate-800">{w.kidName}</strong></span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             )}
           </div>

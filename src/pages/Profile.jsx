@@ -146,27 +146,60 @@ export default function Profile() {
             </button>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[300px] overflow-y-auto p-2 border border-slate-100 rounded-2xl bg-slate-50/50">
-            {allObjects.map(obj => {
-              const isChecked = skills.includes(obj.id);
-              return (
-                <label 
-                  key={obj.id} 
-                  className={`flex items-center gap-3 p-3 rounded-xl border shadow-xs cursor-pointer hover:bg-white transition-all ${
-                    isChecked ? 'border-brand-500 bg-white shadow-xs' : 'border-slate-200 bg-white/40'
-                  }`}
-                >
-                  <input 
-                    type="checkbox"
-                    checked={isChecked}
-                    onChange={() => handleSkillToggle(obj.id)}
-                    className="w-4 h-4 rounded text-brand-700 border-slate-300 focus:ring-brand-700"
-                  />
-                  <div className="p-1 bg-slate-100 rounded-lg">{obj.icon}</div>
-                  <span className="font-semibold text-slate-700 text-xs">{obj.name}</span>
-                </label>
-              );
-            })}
+          <div className="space-y-6 max-h-[350px] overflow-y-auto p-3 border border-slate-100 rounded-2xl bg-slate-50/50">
+            {/* Uso Normal */}
+            <div>
+              <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 border-b border-slate-200/60 pb-1">Uso Normal</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {allObjects.filter(o => o.category === 'normal').map(obj => {
+                  const isChecked = skills.includes(obj.id);
+                  return (
+                    <label 
+                      key={obj.id} 
+                      className={`flex items-center gap-3 p-3 rounded-xl border shadow-xs cursor-pointer hover:bg-white transition-all ${
+                        isChecked ? 'border-brand-500 bg-white shadow-xs' : 'border-slate-200 bg-white/40'
+                      }`}
+                    >
+                      <input 
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={() => handleSkillToggle(obj.id)}
+                        className="w-4 h-4 rounded text-brand-700 border-slate-300 focus:ring-brand-700"
+                      />
+                      <div className="p-1 bg-slate-100 rounded-lg">{obj.icon}</div>
+                      <span className="font-semibold text-slate-700 text-xs">{obj.name}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Uso Solemne */}
+            <div>
+              <h4 className="text-xs font-bold text-accent-500 uppercase tracking-wider mb-3 border-b border-slate-200/60 pb-1">Uso Solemne</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {allObjects.filter(o => o.category === 'solemne').map(obj => {
+                  const isChecked = skills.includes(obj.id);
+                  return (
+                    <label 
+                      key={obj.id} 
+                      className={`flex items-center gap-3 p-3 rounded-xl border shadow-xs cursor-pointer hover:bg-white transition-all ${
+                        isChecked ? 'border-brand-500 bg-white shadow-xs' : 'border-slate-200 bg-white/40'
+                      }`}
+                    >
+                      <input 
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={() => handleSkillToggle(obj.id)}
+                        className="w-4 h-4 rounded text-brand-700 border-slate-300 focus:ring-brand-700"
+                      />
+                      <div className="p-1 bg-slate-100 rounded-lg">{obj.icon}</div>
+                      <span className="font-semibold text-slate-700 text-xs">{obj.name}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </div>
 

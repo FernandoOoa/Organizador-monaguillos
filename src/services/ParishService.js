@@ -162,13 +162,14 @@ export const ParishService = {
   },
 
   // Guardar asignaciones generadas
-  saveParishAssignments: async (parishId, assignments, authorName) => {
+  saveParishAssignments: async (parishId, assignments, authorName, warnings) => {
     try {
       const parishRef = doc(db, 'parishes', parishId);
       await updateDoc(parishRef, {
         latestAssignments: assignments,
         latestAssignmentsDate: new Date().toISOString(),
-        latestAssignmentsAuthor: authorName
+        latestAssignmentsAuthor: authorName,
+        latestAssignmentsWarnings: warnings || []
       });
     } catch (error) {
       console.error("Error al guardar asignaciones:", error);
