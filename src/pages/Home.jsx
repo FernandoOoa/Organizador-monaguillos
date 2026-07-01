@@ -1,10 +1,10 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Sparkles, Shield, User, LogIn, ChevronRight, BookOpen, Compass, CheckCircle2 } from 'lucide-react';
 
 export default function Home() {
-  const { currentUser, loginWithGoogle } = useAuth();
+  const { currentUser, loading, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
 
   const handleLogin = async () => {
@@ -15,6 +15,18 @@ export default function Home() {
       console.error(err);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex-1 flex items-center justify-center p-8">
+        <span className="text-slate-500 font-semibold">Cargando aplicación...</span>
+      </div>
+    );
+  }
+
+  if (currentUser) {
+    return <Navigate to="/parish" replace />;
+  }
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-8 md:p-12 space-y-12 max-w-5xl mx-auto w-full">
