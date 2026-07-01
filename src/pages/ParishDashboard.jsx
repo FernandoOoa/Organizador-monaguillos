@@ -297,7 +297,11 @@ export default function ParishDashboard() {
 
     try {
       // Guardar asignaciones en la base de datos
-      await ParishService.saveParishAssignments(parishId, assignmentsList);
+      await ParishService.saveParishAssignments(
+        parishId, 
+        assignmentsList, 
+        userProfile?.liturgicalName || currentUser?.displayName || 'Desconocido'
+      );
       if (result.warningChicos) {
         setWarningMsg('Atención: Faltan niños Grandes. Se asignaron tareas pesadas (Ciriales, Incienso, Libro) a niños chicos. Supervíselos.');
       }
@@ -481,15 +485,13 @@ export default function ParishDashboard() {
             {members.map(member => (
               <div key={member.uid} className="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-slate-50/50">
                 <div className="flex items-center gap-2 min-w-0">
-                  {isAdmin && (
-                    <input 
-                      type="checkbox"
-                      checked={!!selectedMonaguillos[member.uid]}
-                      onChange={() => toggleMonaguilloPresence(member.uid)}
-                      className="w-4 h-4 rounded text-brand-700 border-slate-300 focus:ring-brand-700 flex-shrink-0"
-                      title="Presente hoy"
-                    />
-                  )}
+                  <input 
+                    type="checkbox"
+                    checked={!!selectedMonaguillos[member.uid]}
+                    onChange={() => toggleMonaguilloPresence(member.uid)}
+                    className="w-4 h-4 rounded text-brand-700 border-slate-300 focus:ring-brand-700 flex-shrink-0"
+                    title="Presente hoy"
+                  />
                   <img src={member.photoURL} alt={member.displayName} className="w-6 h-6 rounded-full border" />
                   <span className="text-xs font-bold text-slate-700 truncate">{member.liturgicalName || member.displayName}</span>
                 </div>
@@ -512,15 +514,13 @@ export default function ParishDashboard() {
             {virtuals.map(v => (
               <div key={v.id} className="flex items-center justify-between p-3 rounded-xl border border-dashed border-amber-200 bg-amber-50/10">
                 <div className="flex items-center gap-2 min-w-0">
-                  {isAdmin && (
-                    <input 
-                      type="checkbox"
-                      checked={!!selectedMonaguillos[v.id]}
-                      onChange={() => toggleMonaguilloPresence(v.id)}
-                      className="w-4 h-4 rounded text-brand-700 border-slate-300 focus:ring-brand-700 flex-shrink-0"
-                      title="Presente hoy"
-                    />
-                  )}
+                  <input 
+                    type="checkbox"
+                    checked={!!selectedMonaguillos[v.id]}
+                    onChange={() => toggleMonaguilloPresence(v.id)}
+                    className="w-4 h-4 rounded text-brand-700 border-slate-300 focus:ring-brand-700 flex-shrink-0"
+                    title="Presente hoy"
+                  />
                   <span className="text-xs font-bold text-amber-950 truncate">👤 {v.name}</span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -543,74 +543,72 @@ export default function ParishDashboard() {
         {/* ASIGNACIONES / GENERACIÓN DE ROLES */}
         <div className="lg:col-span-2 space-y-8">
           
-          {/* VISTA DEL ADMINISTRADOR: Configuración y Generación */}
-          {isAdmin && (
-            <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm space-y-6">
-              <h3 className="font-bold text-slate-800 text-lg flex items-center gap-2 border-b border-slate-100 pb-3">
-                <Sparkles className="w-5 h-5 text-brand-700" /> Configuración de la Liturgia y Asignación
-              </h3>
+          {/* Configuración de la Liturgia y Asignación (Disponible para todos los miembros) */}
+          <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm space-y-6">
+            <h3 className="font-bold text-slate-800 text-lg flex items-center gap-2 border-b border-slate-100 pb-3">
+              <Sparkles className="w-5 h-5 text-brand-700" /> Configuración de la Liturgia y Asignación
+            </h3>
 
-              {/* Objetos normales */}
-              <div className="space-y-3">
-                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Objetos Litúrgicos a Utilizar</h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                  {allObjects.map(obj => {
-                    const config = objectsConfig[obj.id] || { checked: obj.checked, qty: obj.defaultQty || 1 };
-                    const isSelected = config.checked;
+            {/* Objetos normales */}
+            <div className="space-y-3">
+              <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Objetos Litúrgicos a Utilizar</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                {allObjects.map(obj => {
+                  const config = objectsConfig[obj.id] || { checked: obj.checked, qty: obj.defaultQty || 1 };
+                  const isSelected = config.checked;
 
-                    return (
-                      <label key={obj.id} className={`flex items-center gap-3 p-3 rounded-xl border shadow-xs cursor-pointer hover:bg-slate-50 transition-all ${
-                        isSelected ? 'border-l-4 border-l-brand-600 bg-brand-50/10' : 'border-slate-200 bg-white'
-                      }`}>
+                  return (
+                    <label key={obj.id} className={`flex items-center gap-3 p-3 rounded-xl border shadow-xs cursor-pointer hover:bg-slate-50 transition-all ${
+                      isSelected ? 'border-l-4 border-l-brand-600 bg-brand-50/10' : 'border-slate-200 bg-white'
+                    }`}>
+                      <input 
+                        type="checkbox" 
+                        checked={isSelected}
+                        onChange={() => handleObjectCheck(obj.id)}
+                        className="w-4 h-4 rounded text-brand-700 border-slate-300 focus:ring-brand-700"
+                      />
+                      <div className="p-1 bg-slate-100 rounded-lg">{obj.icon}</div>
+                      <span className="font-semibold text-slate-700 text-xs flex-1">{obj.name}</span>
+                      {obj.rules === 'multiple' && (
                         <input 
-                          type="checkbox" 
-                          checked={isSelected}
-                          onChange={() => handleObjectCheck(obj.id)}
-                          className="w-4 h-4 rounded text-brand-700 border-slate-300 focus:ring-brand-700"
+                          type="number"
+                          min="1"
+                          max="8"
+                          value={config.qty}
+                          onChange={(e) => handleObjectQtyChange(obj.id, e.target.value)}
+                          onClick={(e) => e.stopPropagation()}
+                          className="w-10 px-1 py-0.5 text-xs border border-slate-200 rounded-md text-center bg-white"
                         />
-                        <div className="p-1 bg-slate-100 rounded-lg">{obj.icon}</div>
-                        <span className="font-semibold text-slate-700 text-xs flex-1">{obj.name}</span>
-                        {obj.rules === 'multiple' && (
-                          <input 
-                            type="number"
-                            min="1"
-                            max="8"
-                            value={config.qty}
-                            onChange={(e) => handleObjectQtyChange(obj.id, e.target.value)}
-                            onClick={(e) => e.stopPropagation()}
-                            className="w-10 px-1 py-0.5 text-xs border border-slate-200 rounded-md text-center bg-white"
-                          />
-                        )}
-                      </label>
-                    );
-                  })}
-                </div>
+                      )}
+                    </label>
+                  );
+                })}
               </div>
-
-              {/* Alertas */}
-              {errorMsg && (
-                <div className="bg-red-50 border border-red-200 text-red-800 p-4 rounded-xl flex items-center gap-3 text-xs">
-                  <X className="w-5 h-5 text-red-500 flex-shrink-0" />
-                  <span>{errorMsg}</span>
-                </div>
-              )}
-              {warningMsg && (
-                <div className="bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-xl flex items-start gap-3 text-xs">
-                  <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
-                  <span>{warningMsg}</span>
-                </div>
-              )}
-
-              {/* Botón de Sorteo */}
-              <button 
-                onClick={handleGenerateAssignments}
-                className="w-full bg-brand-700 hover:bg-brand-800 text-white font-bold text-base py-3.5 rounded-2xl shadow-md shadow-brand-700/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <Sparkles className="w-5 h-5" />
-                Generar y Guardar Asignación en la Nube
-              </button>
             </div>
-          )}
+
+            {/* Alertas */}
+            {errorMsg && (
+              <div className="bg-red-50 border border-red-200 text-red-800 p-4 rounded-xl flex items-center gap-3 text-xs">
+                <X className="w-5 h-5 text-red-500 flex-shrink-0" />
+                <span>{errorMsg}</span>
+              </div>
+            )}
+            {warningMsg && (
+              <div className="bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-xl flex items-start gap-3 text-xs">
+                <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                <span>{warningMsg}</span>
+              </div>
+            )}
+
+            {/* Botón de Sorteo */}
+            <button 
+              onClick={handleGenerateAssignments}
+              className="w-full bg-brand-700 hover:bg-brand-800 text-white font-bold text-base py-3.5 rounded-2xl shadow-md shadow-brand-700/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <Sparkles className="w-5 h-5" />
+              Generar y Guardar Asignación en la Nube
+            </button>
+          </div>
 
           {/* VISTA DE ROLES ACTUALES EN LA PARROQUIA (Sincronizado en tiempo real) */}
           <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm space-y-6">
@@ -620,7 +618,9 @@ export default function ParishDashboard() {
                   <CheckCircle2 className="w-5 h-5 text-emerald-500" /> Roles Litúrgicos Vigentes
                 </h3>
                 {parish?.latestAssignmentsDate && (
-                  <p className="text-[10px] text-slate-400 font-medium">Generado el {new Date(parish.latestAssignmentsDate).toLocaleString()}</p>
+                  <p className="text-[10px] text-slate-400 font-medium">
+                    Generado {parish.latestAssignmentsAuthor ? `por ${parish.latestAssignmentsAuthor}` : ''} el {new Date(parish.latestAssignmentsDate).toLocaleString()}
+                  </p>
                 )}
               </div>
               {parish?.latestAssignments && (
