@@ -166,3 +166,8 @@ export function getDefaultSkillsForSize(sizeLevel) {
   if (sizeLevel === 'grande') return grandeSkills;
   return chicoSkills;
 }
+
+export function getAllowedObjectsForSize(sizeLevel) {
+  const allowedSkills = getDefaultSkillsForSize(sizeLevel);
+  return allObjects.filter(obj => allowedSkills.includes(obj.id));
+}

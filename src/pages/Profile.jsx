@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { ParishService } from '../services/ParishService';
-import { allObjects, getDefaultSkillsForSize } from '../config/liturgicalObjects';
+import { allObjects, getDefaultSkillsForSize, getAllowedObjectsForSize } from '../config/liturgicalObjects';
 import { Save, User, Award, CheckCircle2, RefreshCw } from 'lucide-react';
 import { useToast } from '../components/ui/ToastContext';
 import Button from '../components/ui/Button';
@@ -13,6 +13,8 @@ export default function Profile() {
   const [size, setSize] = useState('chico');
   const [skills, setSkills] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  const allowedObjects = getAllowedObjectsForSize(size);
 
   // Cargar datos actuales del perfil del usuario
   useEffect(() => {
@@ -45,10 +47,11 @@ export default function Profile() {
   };
 
   const handleSelectAllSkills = () => {
-    if (skills.length === allObjects.length) {
+    const allowed = getAllowedObjectsForSize(size);
+    if (skills.length === allowed.length) {
       setSkills([]); // Deseleccionar todos
     } else {
-      setSkills(allObjects.map(obj => obj.id)); // Seleccionar todos
+      setSkills(allowed.map(obj => obj.id)); // Seleccionar todos los permitidos
     }
   };
 
@@ -83,6 +86,9 @@ export default function Profile() {
       </div>
     );
   }
+
+  const normalAllowed = allowedObjects.filter(o => o.category === 'normal');
+  const solemneAllowed = allowedObjects.filter(o => o.category === 'solemne');
 
   return (
     <div className="max-w-2xl w-full mx-auto bg-white rounded-3xl shadow-xl shadow-slate-200/50 overflow-hidden border-t-8 border-t-brand-700 p-6 sm:p-8 space-y-8 animate-[fadeIn_0.3s_ease-out]">
@@ -171,65 +177,69 @@ export default function Profile() {
                 onClick={handleSelectAllSkills}
                 className="text-xs font-bold text-brand-700 hover:text-brand-800 transition-colors"
               >
-                {skills.length === allObjects.length ? 'Deseleccionar Todos' : 'Seleccionar Todos'}
+                {skills.length === allowedObjects.length ? 'Deseleccionar Todos' : 'Seleccionar Todos'}
               </button>
             </div>
           </div>
           
           <div className="space-y-6 max-h-[350px] overflow-y-auto p-3 border border-slate-100 rounded-2xl bg-slate-50/50">
             {/* Uso Normal */}
-            <div>
-              <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 border-b border-slate-200/60 pb-1">Uso Normal</h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {allObjects.filter(o => o.category === 'normal').map(obj => {
-                  const isChecked = skills.includes(obj.id);
-                  return (
-                    <label 
-                      key={obj.id} 
-                      className={`flex items-center gap-3 p-3 rounded-xl border shadow-xs cursor-pointer hover:bg-white transition-all ${
-                        isChecked ? 'border-brand-500 bg-white shadow-xs' : 'border-slate-200 bg-white/40'
-                      }`}
-                    >
-                      <input 
-                        type="checkbox"
-                        checked={isChecked}
-                        onChange={() => handleSkillToggle(obj.id)}
-                        className="w-4 h-4 rounded text-brand-700 border-slate-300 focus:ring-brand-700"
-                      />
-                      <div className="p-1 bg-slate-100 rounded-lg">{obj.icon}</div>
-                      <span className="font-semibold text-slate-700 text-xs">{obj.name}</span>
-                    </label>
-                  );
-                })}
+            {normalAllowed.length > 0 && (
+              <div>
+                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 border-b border-slate-200/60 pb-1">Uso Normal</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {normalAllowed.map(obj => {
+                    const isChecked = skills.includes(obj.id);
+                    return (
+                      <label 
+                        key={obj.id} 
+                        className={`flex items-center gap-3 p-3 rounded-xl border shadow-xs cursor-pointer hover:bg-white transition-all ${
+                          isChecked ? 'border-brand-500 bg-white shadow-xs' : 'border-slate-200 bg-white/40'
+                        }`}
+                      >
+                        <input 
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => handleSkillToggle(obj.id)}
+                          className="w-4 h-4 rounded text-brand-700 border-slate-300 focus:ring-brand-700"
+                        />
+                        <div className="p-1 bg-slate-100 rounded-lg">{obj.icon}</div>
+                        <span className="font-semibold text-slate-700 text-xs">{obj.name}</span>
+                      </label>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Uso Solemne */}
-            <div>
-              <h4 className="text-xs font-bold text-accent-500 uppercase tracking-wider mb-3 border-b border-slate-200/60 pb-1">Uso Solemne</h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {allObjects.filter(o => o.category === 'solemne').map(obj => {
-                  const isChecked = skills.includes(obj.id);
-                  return (
-                    <label 
-                      key={obj.id} 
-                      className={`flex items-center gap-3 p-3 rounded-xl border shadow-xs cursor-pointer hover:bg-white transition-all ${
-                        isChecked ? 'border-brand-500 bg-white shadow-xs' : 'border-slate-200 bg-white/40'
-                      }`}
-                    >
-                      <input 
-                        type="checkbox"
-                        checked={isChecked}
-                        onChange={() => handleSkillToggle(obj.id)}
-                        className="w-4 h-4 rounded text-brand-700 border-slate-300 focus:ring-brand-700"
-                      />
-                      <div className="p-1 bg-slate-100 rounded-lg">{obj.icon}</div>
-                      <span className="font-semibold text-slate-700 text-xs">{obj.name}</span>
-                    </label>
-                  );
-                })}
+            {solemneAllowed.length > 0 && (
+              <div>
+                <h4 className="text-xs font-bold text-amber-600 uppercase tracking-wider mb-3 border-b border-slate-200/60 pb-1">Uso Solemne</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {solemneAllowed.map(obj => {
+                    const isChecked = skills.includes(obj.id);
+                    return (
+                      <label 
+                        key={obj.id} 
+                        className={`flex items-center gap-3 p-3 rounded-xl border shadow-xs cursor-pointer hover:bg-white transition-all ${
+                          isChecked ? 'border-brand-500 bg-white shadow-xs' : 'border-slate-200 bg-white/40'
+                        }`}
+                      >
+                        <input 
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => handleSkillToggle(obj.id)}
+                          className="w-4 h-4 rounded text-brand-700 border-slate-300 focus:ring-brand-700"
+                        />
+                        <div className="p-1 bg-slate-100 rounded-lg">{obj.icon}</div>
+                        <span className="font-semibold text-slate-700 text-xs">{obj.name}</span>
+                      </label>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
 

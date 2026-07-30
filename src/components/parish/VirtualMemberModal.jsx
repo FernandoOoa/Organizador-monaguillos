@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Modal from '../ui/Modal';
 import Button from '../ui/Button';
-import { allObjects, getDefaultSkillsForSize } from '../../config/liturgicalObjects';
+import { allObjects, getDefaultSkillsForSize, getAllowedObjectsForSize } from '../../config/liturgicalObjects';
 import { useToast } from '../ui/ToastContext';
 
 export default function VirtualMemberModal({
@@ -47,6 +47,8 @@ export default function VirtualMemberModal({
     }
   };
 
+  const allowedObjects = getAllowedObjectsForSize(virtualSize);
+
   return (
     <Modal
       isOpen={isOpen}
@@ -86,10 +88,10 @@ export default function VirtualMemberModal({
 
         <div>
           <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-            Habilidades que posee
+            Habilidades que posee ({allowedObjects.length} disponibles)
           </label>
           <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto pr-1">
-            {allObjects.map(obj => {
+            {allowedObjects.map(obj => {
               const isChecked = virtualSkills.includes(obj.id);
               return (
                 <label
