@@ -100,13 +100,13 @@ export function assignParishTasks(inputKids, selectedIds, qtys) {
 
   // --- 3. INCENSARIO Y NAVETA ---
   if (hasIncensario) {
-    // Buscar incensario
+    // Buscar incensario (Turiferario)
     let poolInc = kids.filter(k => !k.locked);
-    let candidatesInc = getKidsWithSkill(poolInc, 'IncensarioNaveta');
+    let candidatesInc = poolInc.filter(k => k.skills.includes('Incensario') || k.skills.includes('IncensarioNaveta'));
     
     // Priorizar expertos/grandes para incensario
     let poolIncGrandes = poolInc.filter(k => k.size === 'grande' || k.size === 'grande_incienso');
-    let candidatesIncGrandes = getKidsWithSkill(poolIncGrandes, 'IncensarioNaveta');
+    let candidatesIncGrandes = poolIncGrandes.filter(k => k.skills.includes('Incensario') || k.skills.includes('IncensarioNaveta'));
 
     let incKid = getFairKid(
       candidatesIncGrandes.length > 0 ? candidatesIncGrandes :
@@ -115,23 +115,23 @@ export function assignParishTasks(inputKids, selectedIds, qtys) {
     );
 
     if (incKid) {
-      assignTaskToKid(incKid, 'Incensario', 'IncensarioNaveta');
+      assignTaskToKid(incKid, 'Incensario', 'Incensario');
       incKid.locked = true;
       incKid.hasProcesion = true;
     }
 
-    // Buscar naveta
+    // Buscar naveta (Navetero - accesible para chicos o grandes que sepan llevar la naveta)
     let poolNav = kids.filter(k => !k.locked && k !== incKid);
-    let candidatesNav = getKidsWithSkill(poolNav, 'IncensarioNaveta');
+    let candidatesNav = poolNav.filter(k => k.skills.includes('Naveta') || k.skills.includes('IncensarioNaveta'));
     let navKid = getFairKid(candidatesNav.length > 0 ? candidatesNav : poolNav);
 
     if (navKid) {
-      assignTaskToKid(navKid, 'Naveta', 'IncensarioNaveta');
+      assignTaskToKid(navKid, 'Naveta', 'Naveta');
       navKid.hasProcesion = true;
       navKid.hasOfertorioPesado = true;
     }
 
-    activeTasks = activeTasks.filter(t => t.id !== 'IncensarioNaveta');
+    activeTasks = activeTasks.filter(t => t.id !== 'IncensarioNaveta' && t.id !== 'Incensario' && t.id !== 'Naveta');
   }
 
   // --- 4. CIRIALES ---

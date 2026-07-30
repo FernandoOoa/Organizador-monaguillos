@@ -95,6 +95,8 @@ export const allObjects = [
   { id: 'Campanada2y3', name: 'Campanadas 2 y 3', order: 91, rules: 'campana', checked: true, category: 'normal', icon: liturgicalIcons.campana },
   { id: 'Evangelio', name: 'Acompañantes Evangelio', order: 40, rules: 'evangelio', checked: true, category: 'normal', icon: liturgicalIcons.evangelio },
   { id: 'IncensarioNaveta', name: 'Incensario y Naveta', order: 20, rules: 'solo_grandes_combo', checked: false, category: 'solemne', icon: liturgicalIcons.incienso },
+  { id: 'Incensario', name: 'Incensario (Turiferario)', order: 21, rules: 'solo_grandes', checked: false, category: 'solemne', icon: liturgicalIcons.incienso },
+  { id: 'Naveta', name: 'Naveta (Navetero)', order: 22, rules: 'neutral', checked: false, category: 'solemne', icon: liturgicalIcons.incienso },
   { id: 'Ciriales', name: 'Ciriales 1 y 2', order: 30, rules: 'solo_grandes_doble', checked: false, category: 'solemne', icon: liturgicalIcons.cirial },
   { id: 'Isopo', name: 'Isopo y Asetre (Agua bendita)', order: 100, rules: 'neutral', checked: false, category: 'solemne', icon: liturgicalIcons.isopo }
 ];
@@ -128,4 +130,39 @@ export function getTaskEmoji(taskName) {
     }
   }
   return '📌';
+}
+
+export function getDefaultSkillsForSize(sizeLevel) {
+  const chicoSkills = [
+    'Caliz',
+    'Copon',
+    'Vinajeras',
+    'AceitesBautizo',
+    'LavaboCombo',
+    'Campanada1',
+    'Campanada2y3',
+    'Evangelio',
+    'Isopo',
+    'Naveta'
+  ];
+
+  const grandeSkills = [
+    ...chicoSkills,
+    'Platillo',
+    'Libro',
+    'CruzAlta',
+    'Mitra',
+    'Baculo',
+    'Ciriales'
+  ];
+
+  const grandeInciensoSkills = [
+    ...grandeSkills,
+    'Incensario',
+    'IncensarioNaveta'
+  ];
+
+  if (sizeLevel === 'grande_incienso') return grandeInciensoSkills;
+  if (sizeLevel === 'grande') return grandeSkills;
+  return chicoSkills;
 }

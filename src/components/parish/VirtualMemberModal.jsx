@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Modal from '../ui/Modal';
 import Button from '../ui/Button';
-import { allObjects } from '../../config/liturgicalObjects';
+import { allObjects, getDefaultSkillsForSize } from '../../config/liturgicalObjects';
 import { useToast } from '../ui/ToastContext';
 
 export default function VirtualMemberModal({
@@ -11,9 +11,14 @@ export default function VirtualMemberModal({
 }) {
   const [virtualName, setVirtualName] = useState('');
   const [virtualSize, setVirtualSize] = useState('chico');
-  const [virtualSkills, setVirtualSkills] = useState([]);
+  const [virtualSkills, setVirtualSkills] = useState(getDefaultSkillsForSize('chico'));
   const [loading, setLoading] = useState(false);
   const { addToast } = useToast();
+
+  const handleSizeChange = (newSize) => {
+    setVirtualSize(newSize);
+    setVirtualSkills(getDefaultSkillsForSize(newSize));
+  };
 
   const handleToggleSkill = (skillId) => {
     if (virtualSkills.includes(skillId)) {
@@ -32,7 +37,8 @@ export default function VirtualMemberModal({
       await onAddVirtual(virtualName.trim(), virtualSize, virtualSkills);
       addToast(`Monaguillo virtual "${virtualName.trim()}" agregado`, 'success');
       setVirtualName('');
-      setVirtualSkills([]);
+      setVirtualSize('chico');
+      setVirtualSkills(getDefaultSkillsForSize('chico'));
       onClose();
     } catch (err) {
       addToast(err.message, 'error');
@@ -69,7 +75,7 @@ export default function VirtualMemberModal({
           </label>
           <select
             value={virtualSize}
-            onChange={(e) => setVirtualSize(e.target.value)}
+            onChange={(e) => handleSizeChange(e.target.value)}
             className="w-full px-4 py-2.5 rounded-2xl border border-slate-200 text-sm font-semibold focus:ring-2 focus:ring-brand-700 focus:border-transparent outline-none bg-white"
           >
             <option value="chico">Chico</option>

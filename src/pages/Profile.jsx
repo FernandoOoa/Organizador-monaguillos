@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { ParishService } from '../services/ParishService';
-import { allObjects } from '../config/liturgicalObjects';
-import { Save, User, Award, CheckCircle2 } from 'lucide-react';
+import { allObjects, getDefaultSkillsForSize } from '../config/liturgicalObjects';
+import { Save, User, Award, CheckCircle2, RefreshCw } from 'lucide-react';
 import { useToast } from '../components/ui/ToastContext';
 import Button from '../components/ui/Button';
 
@@ -17,11 +17,24 @@ export default function Profile() {
   // Cargar datos actuales del perfil del usuario
   useEffect(() => {
     if (userProfile) {
+      const currentSize = userProfile.size || 'chico';
       setLiturgicalName(userProfile.liturgicalName || currentUser?.displayName || '');
-      setSize(userProfile.size || 'chico');
-      setSkills(userProfile.skills || []);
+      setSize(currentSize);
+      setSkills(
+        userProfile.skills && userProfile.skills.length > 0 
+          ? userProfile.skills 
+          : getDefaultSkillsForSize(currentSize)
+      );
     }
   }, [userProfile, currentUser]);
+
+  const handleSizeChange = (newSize) => {
+    setSize(newSize);
+    const defaultSkills = getDefaultSkillsForSize(newSize);
+    setSkills(defaultSkills);
+    const label = newSize === 'chico' ? 'Niño Chico' : newSize === 'grande' ? 'Niño Grande' : 'Niño Grande (Sabe Incensar)';
+    addToast(`Actividades predeterminadas cargadas para ${label}`, 'info');
+  };
 
   const handleSkillToggle = (objId) => {
     if (skills.includes(objId)) {
@@ -37,6 +50,12 @@ export default function Profile() {
     } else {
       setSkills(allObjects.map(obj => obj.id)); // Seleccionar todos
     }
+  };
+
+  const handleResetDefaultsForSize = () => {
+    const defaultSkills = getDefaultSkillsForSize(size);
+    setSkills(defaultSkills);
+    addToast('Actividades reestablecidas según tu nivel', 'info');
   };
 
   const handleSubmit = async (e) => {
@@ -123,7 +142,7 @@ export default function Profile() {
                   name="size" 
                   value={item.id} 
                   checked={size === item.id}
-                  onChange={() => setSize(item.id)}
+                  onChange={() => handleSizeChange(item.id)}
                   className="sr-only"
                 />
                 <span className="font-bold text-slate-800 text-sm block">{item.label}</span>
@@ -135,15 +154,26 @@ export default function Profile() {
 
         {/* Habilidades / Servicios que sabe hacer */}
         <div className="space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-100 pb-2 gap-2">
             <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Habilidades y Servicios Litúrgicos</label>
-            <button 
-              type="button"
-              onClick={handleSelectAllSkills}
-              className="text-xs font-bold text-brand-700 hover:text-brand-800 transition-colors"
-            >
-              {skills.length === allObjects.length ? 'Deseleccionar Todos' : 'Seleccionar Todos'}
-            </button>
+            <div className="flex items-center gap-2">
+              <button 
+                type="button"
+                onClick={handleResetDefaultsForSize}
+                className="text-xs text-brand-700 hover:text-brand-800 font-bold hover:underline cursor-pointer flex items-center gap-1"
+                title="Cargar actividades predeterminadas de mi nivel"
+              >
+                <RefreshCw className="w-3.5 h-3.5" /> Reestablecer según mi tipo
+              </button>
+              <span className="text-slate-300">|</span>
+              <button 
+                type="button"
+                onClick={handleSelectAllSkills}
+                className="text-xs font-bold text-brand-700 hover:text-brand-800 transition-colors"
+              >
+                {skills.length === allObjects.length ? 'Deseleccionar Todos' : 'Seleccionar Todos'}
+              </button>
+            </div>
           </div>
           
           <div className="space-y-6 max-h-[350px] overflow-y-auto p-3 border border-slate-100 rounded-2xl bg-slate-50/50">
