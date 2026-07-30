@@ -1,6 +1,7 @@
-import React from 'react';
-import { Users, UserPlus, UserMinus, Trash2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Users, UserPlus, UserMinus, Trash2, Eye } from 'lucide-react';
 import Button from '../ui/Button';
+import MemberSkillsModal from './MemberSkillsModal';
 
 export default function AttendanceList({
   members,
@@ -14,6 +15,8 @@ export default function AttendanceList({
   onDeleteVirtual,
   onOpenAddVirtualModal
 }) {
+  const [inspectMonaguillo, setInspectMonaguillo] = useState(null);
+
   return (
     <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm space-y-6">
       <div className="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -59,14 +62,30 @@ export default function AttendanceList({
                   title="Presente hoy"
                 />
                 <img src={member.photoURL || 'https://via.placeholder.com/150'} alt={member.displayName} className="w-6 h-6 rounded-full border" />
-                <span className="text-xs font-bold text-slate-700 truncate">{member.liturgicalName || member.displayName}</span>
+                <button
+                  type="button"
+                  onClick={() => setInspectMonaguillo(member)}
+                  className="text-xs font-bold text-slate-700 hover:text-brand-700 truncate text-left cursor-pointer transition-colors"
+                  title="Ver ficha de habilidades"
+                >
+                  {member.liturgicalName || member.displayName}
+                </button>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
                 <span className="text-[9px] font-extrabold text-slate-400 uppercase">
                   {member.size === 'grande_incienso' ? 'Grande/Inc' : member.size}
                 </span>
+                <button
+                  type="button"
+                  onClick={() => setInspectMonaguillo(member)}
+                  className="p-1 text-slate-400 hover:text-brand-700 hover:bg-slate-100 rounded-lg transition-colors"
+                  title="Ver habilidades que sabe hacer"
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                </button>
                 {isAdmin && member.uid !== currentUserId && (
                   <button
+                    type="button"
                     onClick={() => onKickMember(member.uid)}
                     className="text-slate-300 hover:text-red-600 transition-colors p-1"
                     title="Expulsar de la parroquia"
@@ -102,14 +121,30 @@ export default function AttendanceList({
                   className="w-4 h-4 rounded text-brand-700 border-slate-300 focus:ring-brand-700 cursor-pointer flex-shrink-0"
                   title="Presente hoy"
                 />
-                <span className="text-xs font-bold text-amber-950 truncate">👤 {v.name}</span>
+                <button
+                  type="button"
+                  onClick={() => setInspectMonaguillo(v)}
+                  className="text-xs font-bold text-amber-950 hover:text-brand-700 truncate text-left cursor-pointer transition-colors"
+                  title="Ver ficha de habilidades"
+                >
+                  👤 {v.name}
+                </button>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
                 <span className="text-[9px] font-extrabold text-amber-600 uppercase">
                   {v.size === 'grande_incienso' ? 'Grande/Inc' : v.size} (V)
                 </span>
+                <button
+                  type="button"
+                  onClick={() => setInspectMonaguillo(v)}
+                  className="p-1 text-amber-600 hover:text-brand-700 hover:bg-amber-100 rounded-lg transition-colors"
+                  title="Ver habilidades que sabe hacer"
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                </button>
                 {isAdmin && (
                   <button
+                    type="button"
                     onClick={() => onDeleteVirtual(v.id)}
                     className="text-amber-300 hover:text-red-600 transition-colors p-1"
                     title="Eliminar virtual"
@@ -122,6 +157,13 @@ export default function AttendanceList({
           );
         })}
       </div>
+
+      {/* Modal Ficha Litúrgica de Habilidades */}
+      <MemberSkillsModal
+        isOpen={!!inspectMonaguillo}
+        onClose={() => setInspectMonaguillo(null)}
+        monaguillo={inspectMonaguillo}
+      />
     </div>
   );
 }
