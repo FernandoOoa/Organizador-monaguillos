@@ -3,14 +3,16 @@ import { useAuth } from '../contexts/AuthContext';
 import { ParishService } from '../services/ParishService';
 import { allObjects } from '../config/liturgicalObjects';
 import { Save, User, Award, CheckCircle2 } from 'lucide-react';
+import { useToast } from '../components/ui/ToastContext';
+import Button from '../components/ui/Button';
 
 export default function Profile() {
   const { currentUser, userProfile } = useAuth();
+  const { addToast } = useToast();
   const [liturgicalName, setLiturgicalName] = useState('');
   const [size, setSize] = useState('chico');
   const [skills, setSkills] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
 
   // Cargar datos actuales del perfil del usuario
   useEffect(() => {
@@ -40,18 +42,16 @@ export default function Profile() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setSuccess(false);
     try {
       await ParishService.updateUserProfile(currentUser.uid, {
         liturgicalName,
         size,
         skills
       });
-      setSuccess(true);
-      setTimeout(() => setSuccess(false), 3000);
+      addToast('Perfil actualizado correctamente', 'success');
     } catch (err) {
       console.error(err);
-      alert("Error al actualizar el perfil.");
+      addToast("Error al actualizar el perfil: " + err.message, 'error');
     } finally {
       setLoading(false);
     }
@@ -205,20 +205,16 @@ export default function Profile() {
 
         {/* Botón de envío */}
         <div className="pt-4 flex flex-col sm:flex-row items-center gap-3 justify-end">
-          {success && (
-            <div className="text-emerald-600 font-bold text-sm flex items-center gap-1.5 animate-pulse">
-              <CheckCircle2 className="w-5 h-5" />
-              <span>¡Perfil guardado correctamente!</span>
-            </div>
-          )}
-          <button 
+          <Button
             type="submit"
-            disabled={loading}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-brand-700 hover:bg-brand-800 disabled:bg-slate-400 text-white font-bold px-6 py-3 rounded-2xl text-base shadow-lg shadow-brand-700/25 transition-all active:scale-95 duration-200 cursor-pointer"
+            variant="accent"
+            size="lg"
+            loading={loading}
+            icon={Save}
+            className="w-full sm:w-auto"
           >
-            <Save className="w-5 h-5" />
-            {loading ? 'Guardando...' : 'Guardar Configuración'}
-          </button>
+            Guardar Configuración
+          </Button>
         </div>
 
       </form>
