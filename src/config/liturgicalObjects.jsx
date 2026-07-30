@@ -89,7 +89,7 @@ export const allObjects = [
   { id: 'Vinajeras', name: 'Vinajeras', order: 52, rules: 'vinajeras', checked: true, category: 'normal', icon: liturgicalIcons.vinajeras },
   { id: 'AceitesBautizo', name: 'Aceites para Bautizos', order: 53, rules: 'neutral', checked: false, category: 'normal', icon: liturgicalIcons.aceites },
   { id: 'LavaboCombo', name: 'Piscina, Manutergio, Jarra', order: 60, rules: 'combo_lavabo', checked: true, category: 'normal', icon: liturgicalIcons.lavabo },
-  { id: 'Platillo', name: 'Platillo', order: 70, rules: 'multiple', checked: true, category: 'normal', defaultQty: 2, icon: liturgicalIcons.platillo },
+  { id: 'Platillo', name: 'Platillo', order: 70, rules: 'multiple', checked: true, category: 'normal', defaultQty: 3, icon: liturgicalIcons.platillo },
   { id: 'Libro', name: 'Libro', order: 80, rules: 'solo_grandes', checked: true, category: 'normal', icon: liturgicalIcons.libro },
   { id: 'Campanada1', name: 'Campanada 1', order: 90, rules: 'campana', checked: true, category: 'normal', icon: liturgicalIcons.campana },
   { id: 'Campanada2y3', name: 'Campanadas 2 y 3', order: 91, rules: 'campana', checked: true, category: 'normal', icon: liturgicalIcons.campana },

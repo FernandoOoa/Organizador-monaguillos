@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, BookOpen, Crown, Layers } from 'lucide-react';
+import { Sparkles, BookOpen, Crown, Layers, Droplets } from 'lucide-react';
 import { allObjects } from '../../config/liturgicalObjects';
 import Button from '../ui/Button';
 
@@ -19,19 +19,24 @@ export default function LiturgyConfig({
 
   const presets = [
     {
-      name: 'Misa Dominical Normal',
+      name: 'Misa Normal',
       icon: BookOpen,
-      ids: ['Caliz', 'Copon', 'Vinajeras', 'LavaboCombo', 'Platillo', 'Campanada1', 'Campanada2y3']
+      ids: ['Caliz', 'Copon', 'Vinajeras', 'LavaboCombo', 'Campanada1', 'Campanada2y3', 'Evangelio', 'Platillo', 'Libro']
     },
     {
-      name: 'Misa de Festividad / Solemne',
+      name: 'Misa Solemne',
       icon: Layers,
-      ids: ['CruzAlta', 'Ciriales', 'IncensarioNaveta', 'Libro', 'Caliz', 'Copon', 'Vinajeras', 'LavaboCombo', 'Platillo']
+      ids: ['Caliz', 'Copon', 'Vinajeras', 'LavaboCombo', 'Campanada1', 'Campanada2y3', 'Evangelio', 'Platillo', 'Libro', 'CruzAlta', 'Ciriales', 'IncensarioNaveta']
     },
     {
-      name: 'Misa Pontifical (Obispo)',
+      name: 'Misa con Obispo',
       icon: Crown,
-      ids: ['Mitra', 'Baculo', 'IncensarioNaveta', 'Ciriales', 'CruzAlta', 'Libro', 'Caliz', 'Copon', 'Vinajeras', 'LavaboCombo']
+      ids: ['Caliz', 'Copon', 'Vinajeras', 'LavaboCombo', 'Campanada1', 'Campanada2y3', 'Evangelio', 'Platillo', 'Libro', 'CruzAlta', 'Ciriales', 'IncensarioNaveta', 'Mitra', 'Baculo']
+    },
+    {
+      name: 'Misa Bautizo',
+      icon: Droplets,
+      ids: ['Caliz', 'Copon', 'Vinajeras', 'LavaboCombo', 'Campanada1', 'Campanada2y3', 'Evangelio', 'Platillo', 'Libro', 'CruzAlta', 'Ciriales', 'IncensarioNaveta', 'AceitesBautizo']
     }
   ];
 
@@ -46,7 +51,7 @@ export default function LiturgyConfig({
       {/* Presets Rápidos */}
       <div className="space-y-2">
         <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Plantillas Rápidas (Presets)</span>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
           {presets.map((preset, idx) => {
             const Icon = preset.icon;
             return (

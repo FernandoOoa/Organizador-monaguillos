@@ -237,11 +237,11 @@ export default function ParishDashboard() {
     allObjects.forEach(obj => {
       newConfig[obj.id] = {
         checked: presetIds.includes(obj.id),
-        qty: newConfig[obj.id]?.qty || obj.defaultQty || 1
+        qty: obj.id === 'Platillo' ? 3 : (newConfig[obj.id]?.qty || obj.defaultQty || 1)
       };
     });
     setObjectsConfig(newConfig);
-    addToast('Plantilla litúrgica aplicada', 'info');
+    addToast('Plantilla aplicada. Recuerda revisar que no falte nada y que el número de platillos y copones coincida.', 'info');
   };
 
   // Generar Asignaciones
