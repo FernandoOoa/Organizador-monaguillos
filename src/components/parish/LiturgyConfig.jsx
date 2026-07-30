@@ -14,8 +14,8 @@ export default function LiturgyConfig({
   onGenerateAssignments,
   onApplyPreset
 }) {
-  const normalObjects = allObjects.filter(o => o.category === 'normal');
-  const solemneObjects = allObjects.filter(o => o.category === 'solemne');
+  const normalObjects = allObjects.filter(o => o.category === 'normal' && !o.isSkillOnly);
+  const solemneObjects = allObjects.filter(o => o.category === 'solemne' && !o.isSkillOnly);
 
   const presets = [
     {

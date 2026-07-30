@@ -23,7 +23,8 @@ export default function Button({
     outline: 'border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-xs',
     ghost: 'text-slate-600 hover:text-brand-700 hover:bg-brand-50',
     danger: 'bg-red-600 hover:bg-red-700 text-white shadow-sm shadow-red-600/20',
-    warning: 'bg-amber-500 hover:bg-amber-600 text-white shadow-sm shadow-amber-500/20'
+    warning: 'bg-amber-500 hover:bg-amber-600 text-white shadow-sm shadow-amber-500/20',
+    whatsapp: 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/25 border-transparent'
   };
 
   const sizes = {

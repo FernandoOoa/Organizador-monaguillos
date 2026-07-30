@@ -76,11 +76,10 @@ export default function AssignmentsView({
               Copiar
             </Button>
             <Button
-              variant="outline"
+              variant="whatsapp"
               size="sm"
               onClick={() => handleShare('whatsapp')}
               icon={MessageSquare}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white border-transparent"
             >
               WhatsApp
             </Button>

@@ -5,6 +5,7 @@ import {
   Users, Plus, Trash2, Sparkles, Copy, MessageSquare, 
   Pencil, X, ArrowRight, CheckCircle2, UserCog, AlertTriangle
 } from 'lucide-react';
+import Button from '../components/ui/Button';
 
 export default function PublicGenerator() {
   const [kids, setKids] = useState([]);
@@ -362,7 +363,7 @@ export default function PublicGenerator() {
           <div>
             <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 border-b border-slate-100 pb-2">Uso Normal</h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-              {allObjects.filter(o => o.category === 'normal').map(obj => {
+              {allObjects.filter(o => o.category === 'normal' && !o.isSkillOnly).map(obj => {
                 const config = objectsConfig[obj.id] || { checked: obj.checked, qty: obj.defaultQty || 1 };
                 const isSelected = config.checked;
 
@@ -398,7 +399,7 @@ export default function PublicGenerator() {
           <div>
             <h4 className="text-xs font-bold text-accent-500 uppercase tracking-wider mb-4 border-b border-slate-100 pb-2">Uso Solemne</h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-              {allObjects.filter(o => o.category === 'solemne').map(obj => {
+              {allObjects.filter(o => o.category === 'solemne' && !o.isSkillOnly).map(obj => {
                 const config = objectsConfig[obj.id] || { checked: obj.checked, qty: obj.defaultQty || 1 };
                 const isSelected = config.checked;
 
@@ -464,18 +465,22 @@ export default function PublicGenerator() {
             </h3>
             <p className="text-slate-500 text-sm">Distribución equitativa generada. Puedes reasignar tareas si es necesario.</p>
             <div className="flex flex-wrap justify-center gap-3 pt-2">
-              <button 
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={() => handleShare('copy')}
-                className="inline-flex items-center gap-2 bg-slate-800 text-white hover:bg-slate-900 font-bold px-4 py-2 rounded-xl text-sm transition-all"
+                icon={Copy}
               >
-                <Copy className="w-4 h-4" /> Copiar Texto
-              </button>
-              <button 
+                Copiar Texto
+              </Button>
+              <Button
+                variant="whatsapp"
+                size="sm"
                 onClick={() => handleShare('whatsapp')}
-                className="inline-flex items-center gap-2 bg-emerald-600 text-white hover:bg-emerald-700 font-bold px-4 py-2 rounded-xl text-sm transition-all"
+                icon={MessageSquare}
               >
-                <MessageSquare className="w-4 h-4" /> Enviar por WhatsApp
-              </button>
+                Enviar por WhatsApp
+              </Button>
             </div>
           </div>
 
